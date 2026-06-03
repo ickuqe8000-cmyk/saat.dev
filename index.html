@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAAT.DEV — Software Engineer</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- background depth gradient + particle canvas + god rays -->
+<div id="depth-bg"></div>
+<canvas id="fx-canvas"></canvas>
+<div class="light-rays" aria-hidden="true">
+  <div class="ray" style="left:8%;  animation-delay:0s;"></div>
+  <div class="ray" style="left:32%; animation-delay:-3s; opacity:0.6;"></div>
+  <div class="ray" style="left:58%; animation-delay:-5s;"></div>
+  <div class="ray" style="left:80%; animation-delay:-1.5s; opacity:0.5;"></div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="brand" href="#top"><span class="dot"></span>saat<span class="accent">.dev</span></a>
+  <ul class="nav-links">
+    <li><a href="#projects" data-num="01">Projects</a></li>
+    <li><a href="#contact" data-num="02">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- DEPTH GAUGE -->
+<div class="gauge" aria-hidden="true">
+  <div class="gauge-read">
+    <span class="label">DEPTH</span>
+    <span class="value">0</span> m
+  </div>
+  <div class="gauge-rail">
+    <div class="ticks"></div>
+    <div class="gauge-fill"></div>
+    <div class="gauge-knob"></div>
+  </div>
+</div>
+
+<!-- HERO -->
+<header class="hero" id="top" data-screen-label="Hero">
+  <!-- parallax depth glyphs -->
+  <div class="depth-layer" aria-hidden="true">
+    <span class="float-glyph" data-parallax="34" style="top:18%; left:6%;  font-size:13px;">{ }</span>
+    <span class="float-glyph" data-parallax="60" style="top:30%; right:10%; font-size:46px;">&lt;/&gt;</span>
+    <span class="float-glyph" data-parallax="22" style="top:62%; left:12%; font-size:13px;">01001010</span>
+    <span class="float-glyph" data-parallax="48" style="top:74%; right:18%; font-size:22px;">~/</span>
+    <span class="float-glyph" data-parallax="80" style="top:46%; left:46%; font-size:13px;">async()</span>
+    <span class="float-glyph" data-parallax="40" style="top:14%; right:34%; font-size:13px;">●</span>
+  </div>
+
+  <div class="hero-inner wrap">
+    <p class="pretitle">Software Engineer · Bangkok, TH</p>
+    <h1>
+      <span class="line"><span>สวัสดี, ผม</span></span>
+      <span class="line"><span class="water">SAAT</span></span>
+    </h1>
+    <p class="sub">
+      นักพัฒนาซอฟต์แวร์ที่หลงใหลการสร้างประสบการณ์ดิจิทัล ตั้งแต่ใต้ผิวน้ำของระบบหลังบ้านจนถึงผิวน้ำที่ผู้ใช้สัมผัส
+      <span class="en">// Full-stack engineer crafting fast, thoughtful products.</span>
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#projects">ดูผลงาน <span class="arrow">↗</span></a>
+      <a class="btn btn-ghost" href="#contact">ติดต่อผม</a>
+    </div>
+  </div>
+
+  <div class="scroll-cue">
+    <span class="mouse"></span>
+    <span>dive in</span>
+  </div>
+</header>
+
+<!-- PROJECTS -->
+<section class="projects" id="projects" data-screen-label="Projects">
+  <div class="wrap">
+    <div class="projects-head reveal">
+      <div>
+        <p class="section-tag">Dive Log / บันทึกผลงาน</p>
+        <h2>Selected Work</h2>
+      </div>
+      <span class="count">06 / projects</span>
+    </div>
+
+    <div class="project-grid" id="grid"></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact" data-screen-label="Contact">
+  <div class="wrap">
+    <p class="section-tag reveal">— seabed / let's connect —</p>
+    <h2 class="reveal">มาสร้าง<br><span class="water">บางสิ่งด้วยกัน</span></h2>
+    <p class="lead reveal">มีโปรเจกต์ในใจ หรืออยากชวนคุยเรื่องงาน? ส่งข้อความมาได้เลย ผมตอบทุกฉบับ</p>
+    <a class="mail-btn reveal" href="mailto:hello@saat.dev">hello@saat.dev</a>
+    <div class="socials reveal">
+      <a class="social" href="#">GitHub ↗</a>
+      <a class="social" href="#">LinkedIn ↗</a>
+      <a class="social" href="#">X / Twitter ↗</a>
+      <a class="social" href="#">Read.cv ↗</a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <span>© 2026 <span class="accent">saat.dev</span> — built in the deep</span>
+  <span>3,280 m · 1°C · 328 atm</span>
+</footer>
+
+<script>
+/* project data — swap with real content anytime */
+const PROJECTS = [
+  { title: 'Tideline',   depth: '120 m',   desc: 'แพลตฟอร์ม analytics แบบเรียลไทม์ ประมวลผลสตรีมข้อมูลหลักล้านอีเวนต์ต่อวินาทีพร้อม dashboard ที่ลื่นไหล', tags: ['TypeScript', 'Go', 'ClickHouse', 'WebSocket'], ph: 'dashboard shot' },
+  { title: 'Coral OS',   depth: '340 m',   desc: 'Design system + component library สำหรับทีม 40+ คน ลดเวลาสร้างฟีเจอร์ใหม่ลงกว่า 60%', tags: ['React', 'Storybook', 'Figma API'], ph: 'component grid' },
+  { title: 'Sonar',      depth: '780 m',   desc: 'เครื่องมือ observability เฝ้าระวัง microservices พร้อม distributed tracing และ alerting อัจฉริยะ', tags: ['Rust', 'OpenTelemetry', 'Grafana'], ph: 'trace view' },
+  { title: 'Driftwood',  depth: '1,450 m', desc: 'CLI สำหรับ provision infrastructure แบบ declarative ติดตั้งกว่า 12k ครั้งบน npm', tags: ['Node', 'AWS', 'Terraform'], ph: 'terminal demo' },
+  { title: 'Nautilus',   depth: '2,100 m', desc: 'แอปมือถือสำหรับนักดำน้ำ บันทึก dive log พร้อมแผนที่ใต้น้ำและซิงก์ออฟไลน์', tags: ['React Native', 'SQLite', 'MapKit'], ph: 'mobile screens' },
+  { title: 'Abyss',      depth: '3,280 m', desc: 'งานทดลอง generative art ใช้ WebGL จำลองสิ่งมีชีวิตเรืองแสงในทะเลลึกแบบอินเทอแอกทีฟ', tags: ['WebGL', 'GLSL', 'Three.js'], ph: 'webgl canvas' },
+];
+
+const grid = document.getElementById('grid');
+PROJECTS.forEach((p, i) => {
+  const el = document.createElement('article');
+  el.className = 'card reveal';
+  el.dataset.delay = ((i % 2) * 0.1).toFixed(2);
+  const tags = p.tags.map(t => `<span class="tag">${t}</span>`).join('');
+  el.innerHTML = `
+    <div class="card-media">
+      <span class="card-index">0${i + 1}</span>
+      <span class="card-depth">▾ ${p.depth}</span>
+      <span class="ph">${p.ph}</span>
+    </div>
+    <div class="card-body">
+      <h3>${p.title} <span class="link-ic">↗</span></h3>
+      <p>${p.desc}</p>
+      <div class="tags">${tags}</div>
+    </div>`;
+  grid.appendChild(el);
+});
+</script>
+<script src="app.js"></script>
+</body>
+</html>
