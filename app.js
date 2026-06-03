@@ -1,139 +1,119 @@
 /* ============================================================
-   SAAT.DEV — The Dive : interactions & animation engine
+   SAAT.DEV — Aether Flow particle engine
    ============================================================ */
 (function () {
   'use strict';
 
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /* ---------- BUBBLE / PARTICLE CANVAS ---------- */
+  /* ---------- PARTICLE NETWORK CANVAS ---------- */
   const canvas = document.getElementById('fx-canvas');
   const ctx = canvas.getContext('2d');
-  let W, H, dpr;
-  let bubbles = [];
+  let W, H;
+  let particles = [];
+  const mouse = { x: null, y: null, radius: 200 };
 
-  function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = window.innerWidth;
-    H = window.innerHeight;
-    canvas.width = W * dpr;
-    canvas.height = H * dpr;
-    canvas.style.width = W + 'px';
-    canvas.style.height = H + 'px';
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
+  class Particle {
+    constructor() {
+      this.size = (Math.random() * 2) + 1;
+      this.x = Math.random() * (W - this.size * 2) + this.size;
+      this.y = Math.random() * (H - this.size * 2) + this.size;
+      this.directionX = (Math.random() * 0.4) - 0.2;
+      this.directionY = (Math.random() * 0.4) - 0.2;
+      this.color = 'rgba(191, 128, 255, 0.8)';
+    }
 
-  function makeBubble(initial) {
-    const r = 0.6 + Math.random() * 3.2;
-    return {
-      x: Math.random() * W,
-      y: initial ? Math.random() * H : H + 20,
-      r: r,
-      speed: 0.25 + r * 0.18 + Math.random() * 0.4,
-      drift: (Math.random() - 0.5) * 0.4,
-      sway: Math.random() * Math.PI * 2,
-      swaySpd: 0.005 + Math.random() * 0.02,
-      alpha: 0.12 + Math.random() * 0.35
-    };
-  }
-
-  function initBubbles() {
-    const count = Math.round(Math.min(90, (W * H) / 18000));
-    bubbles = [];
-    for (let i = 0; i < count; i++) bubbles.push(makeBubble(true));
-  }
-
-  let scrollFactor = 0; // 0 at top, 1 at bottom — used to fade particles deeper
-  function drawBubbles() {
-    ctx.clearRect(0, 0, W, H);
-    for (const b of bubbles) {
-      b.y -= b.speed;
-      b.sway += b.swaySpd;
-      b.x += b.drift + Math.sin(b.sway) * 0.3;
-      if (b.y < -10) {
-        Object.assign(b, makeBubble(false));
-      }
+    draw() {
       ctx.beginPath();
-      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(103, 232, 249, ${b.alpha * (0.5 + scrollFactor * 0.5)})`;
-      ctx.lineWidth = 0.8;
-      ctx.stroke();
-      ctx.fillStyle = `rgba(34, 211, 238, ${b.alpha * 0.12})`;
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+      ctx.fillStyle = this.color;
       ctx.fill();
     }
-    requestAnimationFrame(drawBubbles);
+
+    update() {
+      if (this.x > W || this.x < 0) this.directionX = -this.directionX;
+      if (this.y > H || this.y < 0) this.directionY = -this.directionY;
+
+      if (mouse.x !== null) {
+        const dx = mouse.x - this.x;
+        const dy = mouse.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < mouse.radius + this.size) {
+          const fx = dx / dist;
+          const fy = dy / dist;
+          const force = (mouse.radius - dist) / mouse.radius;
+          this.x -= fx * force * 5;
+          this.y -= fy * force * 5;
+        }
+      }
+
+      this.x += this.directionX;
+      this.y += this.directionY;
+      this.draw();
+    }
   }
+
+  function init() {
+    particles = [];
+    const count = Math.floor((H * W) / 9000);
+    for (let i = 0; i < count; i++) particles.push(new Particle());
+  }
+
+  function connect() {
+    const threshold = (W / 7) * (H / 7);
+    for (let a = 0; a < particles.length; a++) {
+      for (let b = a; b < particles.length; b++) {
+        const dx = particles[a].x - particles[b].x;
+        const dy = particles[a].y - particles[b].y;
+        const dist2 = dx * dx + dy * dy;
+
+        if (dist2 < threshold) {
+          const opacity = 1 - (dist2 / 20000);
+
+          let nearMouse = false;
+          if (mouse.x !== null) {
+            const dmx = particles[a].x - mouse.x;
+            const dmy = particles[a].y - mouse.y;
+            nearMouse = (dmx * dmx + dmy * dmy) < mouse.radius * mouse.radius;
+          }
+
+          ctx.strokeStyle = nearMouse
+            ? `rgba(255, 255, 255, ${opacity})`
+            : `rgba(200, 150, 255, ${opacity})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(particles[a].x, particles[a].y);
+          ctx.lineTo(particles[b].x, particles[b].y);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function animate() {
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, W, H);
+    particles.forEach(p => p.update());
+    connect();
+    requestAnimationFrame(animate);
+  }
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    init();
+  }
+
+  window.addEventListener('resize', resize);
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+  window.addEventListener('mouseout', () => { mouse.x = null; mouse.y = null; });
 
   resize();
-  initBubbles();
-  if (!reduceMotion) requestAnimationFrame(drawBubbles);
-  window.addEventListener('resize', () => { resize(); initBubbles(); });
+  animate();
 
-  /* ---------- DEPTH DARKENING + GAUGE on scroll ---------- */
-  const depthBg = document.getElementById('depth-bg');
-  const gauge = document.querySelector('.gauge');
-  const gaugeFill = document.querySelector('.gauge-fill');
-  const gaugeKnob = document.querySelector('.gauge-knob');
-  const gaugeRead = document.querySelector('.gauge-read .value');
-  const lightRays = document.querySelector('.light-rays');
+  /* ---------- NAV scroll state ---------- */
   const nav = document.querySelector('.nav');
-
-  // surface -> abyss color stops
-  function lerp(a, b, t) { return a + (b - a) * t; }
-  function mix(c1, c2, t) {
-    return `rgb(${Math.round(lerp(c1[0], c2[0], t))},${Math.round(lerp(c1[1], c2[1], t))},${Math.round(lerp(c1[2], c2[2], t))})`;
-  }
-  const top1 = [15, 42, 68],   top2 = [4, 16, 30];     // surface gradient
-  const bot1 = [3, 10, 20],    bot2 = [1, 5, 11];      // abyss gradient
-
-  const MAX_DEPTH = 3280; // meters at full scroll (Challenger-deep-ish vibe)
-
-  function onScroll() {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    const t = max > 0 ? Math.min(1, window.scrollY / max) : 0;
-    scrollFactor = t;
-
-    const a = mix(top1, bot1, t);
-    const b = mix(top2, bot2, t);
-    depthBg.style.background = `linear-gradient(180deg, ${a} 0%, ${b} 100%)`;
-
-    // gauge
-    const pct = (t * 100).toFixed(1) + '%';
-    gaugeFill.style.height = pct;
-    gaugeKnob.style.top = pct;
-    if (gaugeRead) gaugeRead.textContent = Math.round(t * MAX_DEPTH).toLocaleString();
-
-    // nav + rays fade with depth
+  window.addEventListener('scroll', () => {
     nav.classList.toggle('scrolled', window.scrollY > 40);
-    if (lightRays) lightRays.style.opacity = String(Math.max(0, 0.55 - t * 1.4));
-  }
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
-
-  // reveal gauge + rays after first paint
-  setTimeout(() => {
-    gauge && gauge.classList.add('on');
-    lightRays && lightRays.classList.add('on');
-  }, 700);
-
-  /* ---------- MOUSE PARALLAX (hero depth layers) ---------- */
-  const layers = document.querySelectorAll('[data-parallax]');
-  if (!reduceMotion && layers.length) {
-    let tx = 0, ty = 0, cx = 0, cy = 0;
-    window.addEventListener('mousemove', (e) => {
-      tx = (e.clientX / window.innerWidth - 0.5);
-      ty = (e.clientY / window.innerHeight - 0.5);
-    });
-    (function loop() {
-      cx += (tx - cx) * 0.06;
-      cy += (ty - cy) * 0.06;
-      layers.forEach(el => {
-        const d = parseFloat(el.dataset.parallax);
-        el.style.transform = `translate3d(${cx * d}px, ${cy * d}px, 0)`;
-      });
-      requestAnimationFrame(loop);
-    })();
-  }
+  }, { passive: true });
 
   /* ---------- SCROLL REVEAL ---------- */
   const io = new IntersectionObserver((entries) => {
@@ -143,23 +123,24 @@
         io.unobserve(en.target);
       }
     });
-  }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
+  }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+
   document.querySelectorAll('.reveal').forEach((el, i) => {
     el.style.transitionDelay = (el.dataset.delay || (i % 2) * 0.08) + 's';
     io.observe(el);
   });
 
-  /* ---------- 3D TILT + glow tracking on project cards ---------- */
+  /* ---------- 3D TILT + glow on project cards ---------- */
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   document.querySelectorAll('.card').forEach(card => {
     let raf = null;
-    card.addEventListener('mousemove', (e) => {
+    card.addEventListener('mousemove', e => {
       const rect = card.getBoundingClientRect();
       const px = (e.clientX - rect.left) / rect.width;
       const py = (e.clientY - rect.top) / rect.height;
       card.style.setProperty('--mx', (px * 100) + '%');
       card.style.setProperty('--my', (py * 100) + '%');
-      if (reduceMotion) return;
-      if (raf) return;
+      if (reduceMotion || raf) return;
       raf = requestAnimationFrame(() => {
         const rotY = (px - 0.5) * 10;
         const rotX = (0.5 - py) * 10;
@@ -167,21 +148,18 @@
         raf = null;
       });
     });
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = '';
-    });
+    card.addEventListener('mouseleave', () => { card.style.transform = ''; });
   });
 
-  /* ---------- smooth anchor offset for fixed nav ---------- */
+  /* ---------- smooth anchor scroll ---------- */
   document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', (e) => {
+    a.addEventListener('click', e => {
       const id = a.getAttribute('href');
       if (id.length < 2) return;
       const target = document.querySelector(id);
       if (!target) return;
       e.preventDefault();
-      const y = target.getBoundingClientRect().top + window.scrollY - 70;
-      window.scrollTo({ top: y, behavior: 'smooth' });
+      window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 70, behavior: 'smooth' });
     });
   });
 })();
